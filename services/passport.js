@@ -26,14 +26,10 @@ passport.use(new LinkedInStrategy({
     callbackURL: '/auth/callback',
     scope: ['r_basicprofile', 'r_emailaddress'],
 },
-    function (accessToken, refreshToken, profile, done) {
-        //User.findOrCreate({ linkedinId: profile.id }, function (err, user) {
-        //    return done(err, user);
-        //});
-        console.log('accessToken', accessToken);
-        console.log('refreshToken', refreshToken);
-        console.log('profile', profile);
-
+    function (accessToken, refreshToken, profile, done) { 
+        //console.log('accessToken', accessToken);
+        //console.log('refreshToken', refreshToken);
+        //console.log('profile', JSON.stringify(profile));
 
         process.nextTick(function () {
             db.User.findOne({ linkedInId: profile.id })
@@ -42,7 +38,14 @@ passport.use(new LinkedInStrategy({
                         done(null, existingUser);
                     } else {
                         //instance of user
-                        new db.User({ linkedInId: profile.id }).save()
+                        new db.User({
+                            linkedInId: profile.id,
+                            fullName: profile.displayName,
+                            email: profile._json.emailAddress,
+                            photo: profile._json.pictureUrl,
+                            headline: profile._json.headline,
+                            location: profile._json.location.name
+                        }).save()
                             .then((user) => {
                                 done(null, user)
                             });
